@@ -215,7 +215,7 @@ def pedir_fechas(screen, callback):
                 req = urllib.request.Request(f"{base}/server/files/config/{arch}")
                 if clave:
                     req.add_header("X-Api-Key", clave)
-                with urllib.request.urlopen(req, timeout=5) as r:
+                with urllib.request.urlopen(req, timeout=15) as r:
                     ts = _ultima_fecha(json.loads(r.read().decode("utf-8")))
                 if ts:
                     fechas[arch] = ts
