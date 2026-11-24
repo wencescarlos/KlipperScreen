@@ -235,6 +235,9 @@ class ScreenPanel:
 
     @staticmethod
     def prettify(name: str):
+        NOMBRES_ES = {"extruder": "Extrusor", "heater_bed": "Cama caliente"}
+        if name in NOMBRES_ES:
+            return NOMBRES_ES[name]
         name = name.replace("_", " ")
         if name.islower():
             name = name.title()
