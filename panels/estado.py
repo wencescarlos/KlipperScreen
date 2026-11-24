@@ -41,6 +41,7 @@ class Panel(ScreenPanel):
         caja.pack_start(scroll, True, True, 0)
         caja.pack_end(botones, False, False, 0)
         self.content.add(caja)
+        self.actualizar()
 
     def macro(self, widget, nombre):
         self._screen._send_action(widget, "printer.gcode.script", {"script": nombre})
@@ -70,7 +71,6 @@ class Panel(ScreenPanel):
         g.attach(cab, 0, 0, 2, 1)
         for i, (etiqueta, valor, color) in enumerate(filas, 1):
             e = Gtk.Label(label=etiqueta, halign=Gtk.Align.START, valign=Gtk.Align.START)
-            e.set_ellipsize(Pango.EllipsizeMode.END)
             v = Gtk.Label(halign=Gtk.Align.END, hexpand=True, xalign=1, wrap=True,
                           wrap_mode=Pango.WrapMode.WORD_CHAR)
             txt = GLib.markup_escape_text(str(valor))

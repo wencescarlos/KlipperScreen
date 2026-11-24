@@ -128,41 +128,41 @@ def resumen(printer, fechas):
     secciones = []
     # --- Mantenimiento
     m = mantenimiento(printer)
-    filas = [("Horas de impresión", f"{num(m['horas'], 1)} h", None),
-             ("Filamento gastado", f"{num(m['filamento_m'], 0)} m", None)]
+    filas = [("Horas", f"{num(m['horas'], 1)} h", None),
+             ("Filamento", f"{num(m['filamento_m'], 0)} m", None)]
     if m["pendientes"]:
         for p in m["pendientes"]:
             filas.append(("TOCA YA", p, AMBAR))
     elif m["proxima"]:
-        filas.append(("Próxima tarea", f"{m['proxima'][0]} (en {num(m['proxima'][1], 0)} h)", None))
+        filas.append(("Próxima", f"{m['proxima'][0]} (en {num(m['proxima'][1], 0)} h)", None))
     secciones.append(("Mantenimiento", filas))
     # --- Z y lamina
     nombre, off = lamina(printer)
     alto = sv.get("altura_z_medida")
     pmax = cfg(printer, "stepper_z", "position_max")
-    filas = [("z_offset del PINDA", f"{num(cfg(printer, 'probe', 'z_offset'), 3)} mm", None),
+    filas = [("z_offset", f"{num(cfg(printer, 'probe', 'z_offset'), 3)} mm", None),
              ("Lámina", f"{nombre} ({num(off, 3, True)} mm)", None)]
     if alto is not None and isinstance(pmax, float):
-        filas.append(("Altura real / máx.", f"{num(alto, 2)} / {num(pmax, 1)} mm",
+        filas.append(("Altura / máx.", f"{num(alto, 2)} / {num(pmax, 1)} mm",
                       AMBAR if alto - pmax < 0.5 else None))
     if sv.get("tuercas_pom_topes") is not None:
         t = sv["tuercas_pom_topes"]
-        filas.append(("Desnivel de los topes", f"{num(t, 2, True)} mm ({'der.' if t < 0 else 'izq.'} más alto)", None))
+        filas.append(("Topes", f"{num(t, 2, True)} mm ({'der.' if t < 0 else 'izq.'} más alto)", None))
     if sv.get("tuercas_z_izq_max") is not None:
         mx = max(sv.get("tuercas_z_izq_max") or 0, sv.get("tuercas_z_der_max") or 0)
-        filas.append(("Holgura tuercas Z", f"{num(sv.get('tuercas_z_izq_max'), 2)} / {num(sv.get('tuercas_z_der_max'), 2)} mm",
+        filas.append(("Tuercas Z", f"{num(sv.get('tuercas_z_izq_max'), 2)} / {num(sv.get('tuercas_z_der_max'), 2)} mm",
                       AMBAR if mx > 0.10 else None))
     secciones.append(("Eje Z y lámina", filas))
     # --- Mecanica
     filas = []
     sk = cfg(printer, "skew_correction pinda_skew", "xy_skew")
     if isinstance(sk, float):
-        filas.append(("Escuadra XY", f"{num(math.degrees(math.atan(sk)), 3, True)}° ({num(abs(sk) * 200, 2)} mm en 200)", None))
+        filas.append(("Escuadra", f"{num(math.degrees(math.atan(sk)), 3, True)}° ({num(abs(sk) * 200, 2)} mm en 200)", None))
     sx, sy = cfg(printer, "tmc2209 stepper_x", "driver_sgthrs"), cfg(printer, "tmc2209 stepper_y", "driver_sgthrs")
     if isinstance(sx, float):
-        filas.append(("Sensorless X / Y", f"{sx:.0f} / {sy:.0f}", None))
+        filas.append(("Sensorless", f"{sx:.0f} / {sy:.0f}", None))
     zonas = sum(1 for k in (printer.get_config_section("bed_mesh") or {}) if k.endswith("_min") and k.startswith("faulty_region"))
-    filas.append(("Zonas de imanes", f"{zonas} en la malla", None))
+    filas.append(("Imanes", f"{zonas} en la malla", None))
     secciones.append(("Mecánica", filas))
     # --- Filamentos
     tipos = list((printer.get_stat("gcode_macro _FILAMENTOS", "tipos") or {}).keys())
@@ -192,7 +192,12 @@ def pedir_fechas(ws, callback):
     def recibido(respuesta, *args):
         fechas = {}
         try:
-            for f in respuesta.get("result", []):
+            lista = respuesta.get("result", []) if isinstance(respuesta, dict) else []
+            if not isinstance(lista, list):
+                lista = lista.get("files", []) if isinstance(lista, dict) else []
+            logging.info(f"wences: {len(lista)} archivos en config"
+                         + ("" if lista else f" (respuesta: {str(respuesta)[:200]})"))
+            for f in lista:
                 p = f.get("path", "")
                 if p in HISTORIALES:
                     fechas[p] = f.get("modified")
@@ -203,6 +208,7 @@ def pedir_fechas(ws, callback):
         callback(fechas)
         return False
     try:
-        ws.send_method("server.files.list", {"root": "config"}, recibido)
+        if not ws.send_method("server.files.list", {"root": "config"}, recibido):
+            logging.info("wences: no se pudo pedir la lista de archivos (sin conexion)")
     except Exception as e:
         logging.debug(f"wences pedir_fechas: {e}")
