@@ -126,6 +126,8 @@ class BasePanel(ScreenPanel):
         self.titlebar.get_style_context().add_class("title_bar")
         self.titlebar.add(self.control["item_box"])
         self.titlebar.add(self.titlelbl)
+        self.control["wences_estado"] = Gtk.Label()  # WENCES_ESTADO
+        self.titlebar.add(self.control["wences_estado"])
         self.titlebar.add(self.control["time_box"])
         self.titlebar.add(self.control["battery_box"])
         self.set_title(title)
@@ -648,7 +650,29 @@ class BasePanel(ScreenPanel):
 
         self.titlelbl.set_label(f"{printer} {title}")
 
+    def wences_estado(self):  # WENCES_ESTADO: filamento cargado + aviso de modo silencioso
+        try:
+            if self._printer is None or "wences_estado" not in self.control:
+                return
+            sv = self._printer.get_stat("save_variables", "variables") or {}
+            sil = self._printer.get_stat("gcode_macro MODO_SILENCIOSO", "activo")
+            sensores = [self._printer.get_stat(n) for n in self._printer.get_filament_sensors()]
+            hay = all(x.get("filament_detected", True) for x in sensores if x)
+            fil = str(sv.get("filamento", "") or "")
+            if not hay:
+                txt = "Sin filamento"
+            else:
+                txt = GLib.markup_escape_text(fil) if fil else "Filamento ?"
+            if sil is True:
+                txt += '  <span foreground="#ffb300"><b>SILENCIOSO</b></span>'
+            if txt != getattr(self, "_wences_txt", None):
+                self._wences_txt = txt
+                self.control["wences_estado"].set_markup(txt)
+        except Exception as e:
+            logging.debug(f"wences_estado: {e}")
+
     def update_time(self):
+        self.wences_estado()
         now = datetime.now()
         confopt = self._config.get_main_config().getboolean("24htime", True)
         if now.minute != self.time_min or self.time_format != confopt:

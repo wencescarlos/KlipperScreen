@@ -385,6 +385,9 @@ class KlipperScreen(Gtk.ApplicationWindow):
         for led in self.printer.get_leds():
             requested_updates["objects"][led] = ["color_data"]
 
+        # WENCES_ESTADO: filamento cargado y modo silencioso en la barra superior
+        requested_updates["objects"]["save_variables"] = ["variables"]
+        requested_updates["objects"]["gcode_macro MODO_SILENCIOSO"] = ["activo"]
         self._ws.api.object_subscription(requested_updates)
 
     @staticmethod
