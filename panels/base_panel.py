@@ -15,6 +15,7 @@ from jinja2 import Environment
 
 from ks_includes.functions import pad_number
 from ks_includes.screen_panel import ScreenPanel
+from ks_includes import wences
 from ks_includes.svg_gradient import apply_filament_gradient, filament_colors_from_dict
 
 try:
@@ -127,7 +128,11 @@ class BasePanel(ScreenPanel):
         self.titlebar.add(self.control["item_box"])
         self.titlebar.add(self.titlelbl)
         self.control["wences_estado"] = Gtk.Label()  # WENCES_ESTADO
-        self.titlebar.add(self.control["wences_estado"])
+        # tocar el filamento o los avisos abre el panel Estado
+        self.control["wences_caja"] = Gtk.EventBox()
+        self.control["wences_caja"].add(self.control["wences_estado"])
+        self.control["wences_caja"].connect("button-release-event", self.wences_abrir_estado)
+        self.titlebar.add(self.control["wences_caja"])
         self.titlebar.add(self.control["time_box"])
         self.titlebar.add(self.control["battery_box"])
         self.set_title(title)
@@ -665,11 +670,18 @@ class BasePanel(ScreenPanel):
                 txt = GLib.markup_escape_text(fil) if fil else "Filamento ?"
             if sil is True:
                 txt += '  <span foreground="#ffb300"><b>SILENCIOSO</b></span>'
+            for aviso, color in wences.avisos(self._printer):
+                txt += f'  <span foreground="{color}"><b>{aviso}</b></span>'
             if txt != getattr(self, "_wences_txt", None):
                 self._wences_txt = txt
                 self.control["wences_estado"].set_markup(txt)
         except Exception as e:
             logging.debug(f"wences_estado: {e}")
+
+    def wences_abrir_estado(self, *args):
+        if self._screen._cur_panels and self._screen._cur_panels[-1] == "estado":
+            return
+        self._screen.show_panel("estado", "Estado de la impresora")
 
     def update_time(self):
         self.wences_estado()
