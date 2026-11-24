@@ -3,9 +3,15 @@
 # (panels/estado.py) y la pantalla de impresion (panels/job_status.py).
 # Todo sale de objetos de Klipper suscritos (save_variables, macros) y de la lista de
 # archivos de la config (fechas de config/historial/*.json, estudio de cama e imanes).
+import json
 import logging
 import math
+import threading
 import time
+import urllib.request
+from datetime import datetime
+
+from gi.repository import GLib
 
 AMBAR = "#ffb300"
 ROJO = "#ff5252"
@@ -111,15 +117,16 @@ def pa(printer, tipo):
 
 
 def edad(ts):
-    """'hoy', 'ayer', 'hace 5 dias'... desde una marca de tiempo."""
+    """'24/11 · hoy', '15/11 · hace 10 dias'... desde una marca de tiempo."""
     if not ts:
         return "nunca"
-    dias = int((time.time() - ts) // 86400)
+    dia = datetime.fromtimestamp(ts).strftime("%d/%m")
+    dias = (datetime.now().date() - datetime.fromtimestamp(ts).date()).days
     if dias <= 0:
-        return "hoy"
+        return f"{dia} · hoy"
     if dias == 1:
-        return "ayer"
-    return f"hace {dias} días"
+        return f"{dia} · ayer"
+    return f"{dia} · hace {dias} días"
 
 
 def resumen(printer, fechas):
@@ -187,16 +194,41 @@ def resumen(printer, fechas):
     return secciones
 
 
-def pedir_fechas(ws, callback):
-    """Pide a Moonraker la lista de la config y llama callback({archivo: modificado})."""
+def _ultima_fecha(datos):
+    """Fecha de la ultima entrada de un historial ([{fecha: 'AAAA-MM-DD HH:MM', ...}])."""
+    try:
+        f = datos[-1]["fecha"]
+        return datetime.strptime(f[:16], "%Y-%m-%d %H:%M").timestamp()
+    except Exception:
+        return None
+
+
+def pedir_fechas(screen, callback):
+    """Fecha de la ultima medida de cada historial. Pide la lista de la config por el
+    websocket y lee en segundo plano la ultima entrada de cada JSON; si no puede, usa la
+    fecha de modificacion del archivo. Llama callback({archivo: marca de tiempo})."""
+    def leer(fechas):
+        base = getattr(screen, "moonraker_endpoint", "http://127.0.0.1:7125")
+        clave = getattr(screen, "moonraker_api_key", "")
+        for arch in [a for a in fechas if a in HISTORIALES]:
+            try:
+                req = urllib.request.Request(f"{base}/server/files/config/{arch}")
+                if clave:
+                    req.add_header("X-Api-Key", clave)
+                with urllib.request.urlopen(req, timeout=5) as r:
+                    ts = _ultima_fecha(json.loads(r.read().decode("utf-8")))
+                if ts:
+                    fechas[arch] = ts
+            except Exception as e:
+                logging.debug(f"wences {arch}: {e}")
+        GLib.idle_add(callback, fechas)
+
     def recibido(respuesta, *args):
         fechas = {}
         try:
             lista = respuesta.get("result", []) if isinstance(respuesta, dict) else []
             if not isinstance(lista, list):
                 lista = lista.get("files", []) if isinstance(lista, dict) else []
-            logging.info(f"wences: {len(lista)} archivos en config"
-                         + ("" if lista else f" (respuesta: {str(respuesta)[:200]})"))
             for f in lista:
                 p = f.get("path", "")
                 if p in HISTORIALES:
@@ -205,10 +237,12 @@ def pedir_fechas(ws, callback):
                     fechas["escaneo_imanes"] = max(fechas.get("escaneo_imanes", 0), f.get("modified", 0))
         except Exception as e:
             logging.debug(f"wences fechas: {e}")
-        callback(fechas)
+        callback(dict(fechas))
+        threading.Thread(target=leer, args=(fechas,), daemon=True).start()
         return False
+
     try:
-        if not ws.send_method("server.files.list", {"root": "config"}, recibido):
+        if not screen._ws.send_method("server.files.list", {"root": "config"}, recibido):
             logging.info("wences: no se pudo pedir la lista de archivos (sin conexion)")
     except Exception as e:
         logging.debug(f"wences pedir_fechas: {e}")

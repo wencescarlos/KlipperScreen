@@ -51,11 +51,12 @@ class Panel(ScreenPanel):
 
     def actualizar(self, *args):
         self.pintar()
-        wences.pedir_fechas(self._screen._ws, self.fechas_recibidas)
+        wences.pedir_fechas(self._screen, self.fechas_recibidas)
 
     def fechas_recibidas(self, fechas):
         self.fechas = fechas
         self.pintar()
+        return False
 
     def process_update(self, action, data):
         if action != "notify_status_update":
