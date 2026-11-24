@@ -106,7 +106,7 @@ class Panel(MenuPanel):
             dev_type = "extruder"
         elif device == "heater_bed":
             image = "bed"
-            devname = "Heater Bed"
+            devname = "heater_bed"  # prettify() -> "Cama caliente" (NOMBRES_ES)
             class_name = "graph_label_heater_bed"
             dev_type = "bed"
         elif device.startswith("heater_generic"):
