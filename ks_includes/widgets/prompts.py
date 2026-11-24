@@ -35,7 +35,9 @@ class Prompt:
             self.buttons = []
             return
         elif data.startswith("prompt_text"):
-            self.text = data.replace("prompt_text ", "")
+            # WENCES_TEXTOS: varias lineas prompt_text se suman (antes quedaba solo la ultima)
+            t = data.replace("prompt_text ", "")
+            self.text = (self.text + "\n\n" + t) if self.text else t
             return
         elif data.startswith("prompt_button "):
             data = data.replace("prompt_button ", "")
