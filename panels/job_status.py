@@ -14,6 +14,7 @@ from gi.repository import GLib, Gtk, Pango
 from ks_includes.functions import pad_number
 from ks_includes.KlippyGtk import find_widget
 from ks_includes.screen_panel import ScreenPanel
+from ks_includes import wences
 
 
 class Panel(ScreenPanel):
@@ -124,6 +125,9 @@ class Panel(ScreenPanel):
 
         fi_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10, valign=Gtk.Align.CENTER)
         fi_box.add(self.labels["file"])
+        # WENCES_IMPRESION: filamento, lamina, PA, capa y modo silencioso en una linea
+        self.labels["wences"] = Gtk.Label(halign=Gtk.Align.START, ellipsize=Pango.EllipsizeMode.END)
+        fi_box.add(self.labels["wences"])
         fi_box.add(self.labels["lcdmessage"])
         self.grid.attach(fi_box, 1, 0, 3, 1)
 
@@ -409,7 +413,12 @@ class Panel(ScreenPanel):
             "save_offset_endstop": self._gtk.Button(
                 "home-z", _("Save Z") + "\n" + "Endstop", "color2"
             ),
+            # WENCES_IMPRESION: accesos directos a macros propias
+            "silencioso": self._gtk.Button("speed-", "Silencioso", "color2"),
+            "primera_capa": self._gtk.Button("z-closer", "1ª capa", "color3"),
         }
+        self.buttons["silencioso"].connect("clicked", self.wences_macro, "MODO_SILENCIOSO")
+        self.buttons["primera_capa"].connect("clicked", self.wences_macro, "REVISAR_PRIMERA_CAPA")
         self.buttons["cancel"].connect("clicked", self.cancel)
         self.buttons["control"].connect("clicked", self._screen._go_to_submenu, "")
         self.buttons["fine_tune"].connect("clicked", self.menu_item_clicked, {"panel": "fine_tune"})
@@ -419,6 +428,40 @@ class Panel(ScreenPanel):
         self.buttons["resume"].connect("clicked", self.resume)
         self.buttons["save_offset_probe"].connect("clicked", self.save_offset, "probe")
         self.buttons["save_offset_endstop"].connect("clicked", self.save_offset, "endstop")
+
+    def wences_macro(self, widget, macro):
+        self._screen._send_action(widget, "printer.gcode.script", {"script": macro})
+
+    def wences_actualizar(self):
+        """Linea de informacion y estado del boton Silencioso (WENCES_IMPRESION)."""
+        try:
+            p = self._printer
+            sv = wences.variables(p)
+            partes = []
+            info = p.get_stat("print_stats", "info") or {}
+            fil = str(sv.get("filamento") or "")
+            if fil:
+                partes.append(GLib.markup_escape_text(fil))
+            nombre, off = wences.lamina(p)
+            partes.append(f"lámina {GLib.markup_escape_text(nombre)} {wences.num(off, 3, True)}")
+            ext = p.get_stat("toolhead", "extruder") or "extruder"
+            partes.append(f"PA {wences.num(p.get_stat(ext, 'pressure_advance'), 3)}")
+            if info.get("current_layer") is not None and info.get("total_layer"):
+                partes.append(f"capa {info['current_layer']}/{info['total_layer']}")
+            sil = p.get_stat("gcode_macro MODO_SILENCIOSO", "activo") is True
+            if sil:
+                partes.append(f'<span foreground="{wences.AMBAR}"><b>SILENCIOSO</b></span>')
+            txt = " · ".join(partes)
+            if txt != getattr(self, "_wences_txt", None):
+                self._wences_txt = txt
+                self.labels["wences"].set_markup(txt)
+            if sil != getattr(self, "_wences_sil", None):
+                self._wences_sil = sil
+                self.buttons["silencioso"].set_label("Silencioso" + chr(10) + "ACTIVO" if sil else "Silencioso")
+                ctx = self.buttons["silencioso"].get_style_context()
+                (ctx.add_class if sil else ctx.remove_class)("color1")
+        except Exception as e:
+            logging.debug(f"wences_actualizar: {e}")
 
     def save_offset(self, widget, device):
         sign = "+" if self.zoffset > 0 else "-"
@@ -558,6 +601,7 @@ class Panel(ScreenPanel):
         elif action != "notify_status_update":
             return
 
+        self.wences_actualizar()
         for x in self._printer.get_temp_devices():
             if x in data:
                 self.update_temp(
@@ -888,7 +932,9 @@ class Panel(ScreenPanel):
             self.buttons["button_grid"].attach(self.buttons["pause"], 0, 0, 1, 1)
             self.buttons["button_grid"].attach(self.buttons["cancel"], 1, 0, 1, 1)
             self.buttons["button_grid"].attach(self.buttons["fine_tune"], 2, 0, 1, 1)
-            self.buttons["button_grid"].attach(self.buttons["control"], 3, 0, 1, 1)
+            self.buttons["button_grid"].attach(self.buttons["silencioso"], 3, 0, 1, 1)
+            self.buttons["button_grid"].attach(self.buttons["primera_capa"], 4, 0, 1, 1)
+            self.buttons["button_grid"].attach(self.buttons["control"], 5, 0, 1, 1)
             self.enable_button("pause", "cancel")
             self._gtk.Button_busy(self.buttons["cancel"], False)
             self.can_close = False
@@ -918,7 +964,10 @@ class Panel(ScreenPanel):
                     )
                 else:
                     self.buttons["button_grid"].attach(Gtk.Label(), 0, 0, 1, 1)
-                if "Z_OFFSET_APPLY_PROBE" in self._printer.available_commands:
+                # WENCES_IMPRESION: con laminas de klipper-macros el ajuste de Z ya se guarda en la
+                # lamina; guardarlo tambien en el z_offset del PINDA lo aplicaria dos veces.
+                if ("Z_OFFSET_APPLY_PROBE" in self._printer.available_commands
+                        and "bed_surfaces" not in wences.variables(self._printer)):
                     self.buttons["button_grid"].attach(
                         self.buttons["save_offset_probe"], 1, 0, 1, 1
                     )
