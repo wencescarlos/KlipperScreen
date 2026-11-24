@@ -37,6 +37,7 @@ from ks_includes.widgets.lockscreen import LockScreen
 from ks_includes.widgets.prompts import Prompt
 from ks_includes.widgets.screensaver import ScreenSaver
 from panels.base_panel import BasePanel
+from ks_includes import wences
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -385,9 +386,8 @@ class KlipperScreen(Gtk.ApplicationWindow):
         for led in self.printer.get_leds():
             requested_updates["objects"][led] = ["color_data"]
 
-        # WENCES_ESTADO: filamento cargado y modo silencioso en la barra superior
-        requested_updates["objects"]["save_variables"] = ["variables"]
-        requested_updates["objects"]["gcode_macro MODO_SILENCIOSO"] = ["activo"]
+        # WENCES_ESTADO: datos de las macros propias (barra superior, panel Estado, impresion)
+        wences.suscribir(requested_updates)
         self._ws.api.object_subscription(requested_updates)
 
     @staticmethod
