@@ -220,7 +220,7 @@ def pedir_fechas(screen, callback):
                 if ts:
                     fechas[arch] = ts
             except Exception as e:
-                logging.debug(f"wences {arch}: {e}")
+                logging.info(f"wences: no se pudo leer {arch} de {base}: {e}")
         GLib.idle_add(callback, fechas)
 
     def recibido(respuesta, *args):
