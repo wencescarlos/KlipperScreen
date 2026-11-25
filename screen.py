@@ -994,6 +994,14 @@ class KlipperScreen(Gtk.ApplicationWindow):
             self.parse_ks_action(action[8:].strip())
 
     def parse_ks_action(self, action):
+        # WENCES_SUBMENU: "action:ks_show submenu more calibrar" abre ese submenu desde una macro
+        if action.startswith("submenu"):
+            nombre = action[len("submenu"):].strip()
+            if nombre:
+                if "main_menu" not in self._cur_panels:
+                    self._menu_go_back(home=True)
+                self._go_to_submenu(None, nombre)
+            return
         action = action.split(" ", 1)
         if len(action) == 2:
             panel, params = action
