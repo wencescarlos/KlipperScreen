@@ -126,7 +126,7 @@ def edad(ts):
         return f"{dia} · hoy"
     if dias == 1:
         return f"{dia} · ayer"
-    return f"{dia} · hace {dias} días"
+    return f"{dia} · {dias} d"
 
 
 def resumen(printer, fechas):
