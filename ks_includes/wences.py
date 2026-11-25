@@ -86,8 +86,12 @@ def mantenimiento(printer):
             pendientes.append(desc)
         elif proxima is None or falta < proxima[1]:
             proxima = (desc, falta)
-    return {"horas": horas, "pendientes": pendientes, "proxima": proxima,
-            "filamento_m": float(m.get("filamento_m", 0) or 0)}
+    return {
+        "horas": horas,
+        "pendientes": pendientes,
+        "proxima": proxima,
+        "filamento_m": float(m.get("filamento_m", 0) or 0),
+    }
 
 
 def lamina(printer):
@@ -135,8 +139,10 @@ def resumen(printer, fechas):
     secciones = []
     # --- Mantenimiento
     m = mantenimiento(printer)
-    filas = [("Horas", f"{num(m['horas'], 1)} h", None),
-             ("Filamento", f"{num(m['filamento_m'], 0)} m", None)]
+    filas = [
+        ("Horas", f"{num(m['horas'], 1)} h", None),
+        ("Filamento", f"{num(m['filamento_m'], 0)} m", None),
+    ]
     if m["pendientes"]:
         for p in m["pendientes"]:
             filas.append(("TOCA YA", p, AMBAR))
@@ -147,28 +153,55 @@ def resumen(printer, fechas):
     nombre, off = lamina(printer)
     alto = sv.get("altura_z_medida")
     pmax = cfg(printer, "stepper_z", "position_max")
-    filas = [("z_offset", f"{num(cfg(printer, 'probe', 'z_offset'), 3)} mm", None),
-             ("Lámina", f"{nombre} ({num(off, 3, True)} mm)", None)]
+    filas = [
+        ("z_offset", f"{num(cfg(printer, 'probe', 'z_offset'), 3)} mm", None),
+        ("Lámina", f"{nombre} ({num(off, 3, True)} mm)", None),
+    ]
     if alto is not None and isinstance(pmax, float):
-        filas.append(("Altura / máx.", f"{num(alto, 2)} / {num(pmax, 1)} mm",
-                      AMBAR if alto - pmax < 0.5 else None))
+        filas.append(
+            (
+                "Altura / máx.",
+                f"{num(alto, 2)} / {num(pmax, 1)} mm",
+                AMBAR if alto - pmax < 0.5 else None,
+            )
+        )
     if sv.get("tuercas_pom_topes") is not None:
         t = sv["tuercas_pom_topes"]
-        filas.append(("Topes", f"{num(t, 2, True)} mm ({'der.' if t < 0 else 'izq.'} más alto)", None))
+        filas.append(
+            ("Topes", f"{num(t, 2, True)} mm ({'der.' if t < 0 else 'izq.'} más alto)", None)
+        )
     if sv.get("tuercas_z_izq_max") is not None:
         mx = max(sv.get("tuercas_z_izq_max") or 0, sv.get("tuercas_z_der_max") or 0)
-        filas.append(("Tuercas Z", f"{num(sv.get('tuercas_z_izq_max'), 2)} / {num(sv.get('tuercas_z_der_max'), 2)} mm",
-                      AMBAR if mx > 0.10 else None))
+        filas.append(
+            (
+                "Tuercas Z",
+                f"{num(sv.get('tuercas_z_izq_max'), 2)} / {num(sv.get('tuercas_z_der_max'), 2)} mm",
+                AMBAR if mx > 0.10 else None,
+            )
+        )
     secciones.append(("Eje Z y lámina", filas))
     # --- Mecanica
     filas = []
     sk = cfg(printer, "skew_correction pinda_skew", "xy_skew")
     if isinstance(sk, float):
-        filas.append(("Escuadra", f"{num(math.degrees(math.atan(sk)), 3, True)}° ({num(abs(sk) * 200, 2)} mm en 200)", None))
-    sx, sy = cfg(printer, "tmc2209 stepper_x", "driver_sgthrs"), cfg(printer, "tmc2209 stepper_y", "driver_sgthrs")
+        filas.append(
+            (
+                "Escuadra",
+                f"{num(math.degrees(math.atan(sk)), 3, True)}° ({num(abs(sk) * 200, 2)} mm en 200)",
+                None,
+            )
+        )
+    sx, sy = (
+        cfg(printer, "tmc2209 stepper_x", "driver_sgthrs"),
+        cfg(printer, "tmc2209 stepper_y", "driver_sgthrs"),
+    )
     if isinstance(sx, float):
         filas.append(("Sensorless", f"{sx:.0f} / {sy:.0f}", None))
-    zonas = sum(1 for k in (printer.get_config_section("bed_mesh") or {}) if k.endswith("_min") and k.startswith("faulty_region"))
+    zonas = sum(
+        1
+        for k in (printer.get_config_section("bed_mesh") or {})
+        if k.endswith("_min") and k.startswith("faulty_region")
+    )
     filas.append(("Imanes", f"{zonas} en la malla", None))
     secciones.append(("Mecánica", filas))
     # --- Filamentos
@@ -182,6 +215,28 @@ def resumen(printer, fechas):
             txt += f" · flujo {num(flujo, 0)} mm³/s"
         filas.append((t, txt, None if medido else "#9aa5ae"))
     secciones.append(("Filamentos", filas))
+    # --- Conexion WiFi (Sonar)
+    sonar = fechas.get("sonar")
+    if isinstance(sonar, dict):
+        filas = []
+        if sonar.get("started"):
+            filas.append(
+                (
+                    "Sonar vigilando",
+                    "desde " + datetime.fromtimestamp(sonar["started"]).strftime("%d/%m %H:%M"),
+                    None,
+                )
+            )
+        cortes = int(sonar.get("losses") or 0)
+        filas.append(("Cortes", str(cortes) if cortes else "ninguno", None))
+        if sonar.get("last_loss"):
+            ev = (sonar.get("events") or [{}])[-1]
+            reciente = time.time() - sonar["last_loss"] < 86400
+            txt = datetime.fromtimestamp(sonar["last_loss"]).strftime("%d/%m %H:%M")
+            if ev.get("attempts") is not None:
+                txt += f" ({ev['attempts']} reinicios)" if ev["attempts"] else " (volvió sola)"
+            filas.append(("Último corte", txt, AMBAR if reciente else None))
+        secciones.append(("Conexión WiFi", filas))
     # --- Ultimas medidas
     filas = []
     for arch, nombre in HISTORIALES.items():
@@ -207,6 +262,7 @@ def pedir_fechas(screen, callback):
     """Fecha de la ultima medida de cada historial. Pide la lista de la config por el
     websocket y lee en segundo plano la ultima entrada de cada JSON; si no puede, usa la
     fecha de modificacion del archivo. Llama callback({archivo: marca de tiempo})."""
+
     def leer(fechas):
         base = getattr(screen, "moonraker_endpoint", "http://127.0.0.1:7125")
         clave = getattr(screen, "moonraker_api_key", "")
@@ -221,6 +277,15 @@ def pedir_fechas(screen, callback):
                     fechas[arch] = ts
             except Exception as e:
                 logging.info(f"wences: no se pudo leer {arch} de {base}: {e}")
+        # Sonar (fork wencescarlos/sonar): cortes de WiFi en logs/sonar_estado.json
+        try:
+            req = urllib.request.Request(f"{base}/server/files/logs/sonar_estado.json")
+            if clave:
+                req.add_header("X-Api-Key", clave)
+            with urllib.request.urlopen(req, timeout=15) as r:
+                fechas["sonar"] = json.loads(r.read().decode("utf-8"))
+        except Exception as e:
+            logging.info(f"wences: sin estado de Sonar: {e}")
         GLib.idle_add(callback, fechas)
 
     def recibido(respuesta, *args):
@@ -234,7 +299,9 @@ def pedir_fechas(screen, callback):
                 if p in HISTORIALES:
                     fechas[p] = f.get("modified")
                 elif p.startswith("escaneo_imanes/") and p.endswith(".json"):
-                    fechas["escaneo_imanes"] = max(fechas.get("escaneo_imanes", 0), f.get("modified", 0))
+                    fechas["escaneo_imanes"] = max(
+                        fechas.get("escaneo_imanes", 0), f.get("modified", 0)
+                    )
         except Exception as e:
             logging.debug(f"wences fechas: {e}")
         callback(dict(fechas))

@@ -20,17 +20,21 @@ class Panel(ScreenPanel):
         self.fechas = {}
         self._firma = None
 
-        self.cols = Gtk.Grid(column_homogeneous=True, column_spacing=12, row_spacing=6,
-                             hexpand=True, vexpand=True)
+        self.cols = Gtk.Grid(
+            column_homogeneous=True, column_spacing=12, row_spacing=6, hexpand=True, vexpand=True
+        )
         scroll = self._gtk.ScrolledWindow()
         scroll.add(self.cols)
 
         botones = Gtk.Box(spacing=6, homogeneous=True, vexpand=False)
-        for icono, texto, accion in (("info", "Mantenimiento", "MANTENIMIENTO"),
-                                     ("filament", "Consumo", "CONSUMO"),
-                                     ("refresh", "Actualizar", None)):
-            b = self._gtk.Button(icono, texto, "color2" if accion else "color3", self.bts,
-                                 Gtk.PositionType.LEFT, 1)
+        for icono, texto, accion in (
+            ("info", "Mantenimiento", "MANTENIMIENTO"),
+            ("filament", "Consumo", "CONSUMO"),
+            ("refresh", "Actualizar", None),
+        ):
+            b = self._gtk.Button(
+                icono, texto, "color2" if accion else "color3", self.bts, Gtk.PositionType.LEFT, 1
+            )
             if accion:
                 b.connect("clicked", self.macro, accion)
             else:
@@ -72,8 +76,13 @@ class Panel(ScreenPanel):
         g.attach(cab, 0, 0, 2, 1)
         for i, (etiqueta, valor, color) in enumerate(filas, 1):
             e = Gtk.Label(label=etiqueta, halign=Gtk.Align.START, valign=Gtk.Align.START)
-            v = Gtk.Label(halign=Gtk.Align.END, hexpand=True, xalign=1, wrap=True,
-                          wrap_mode=Pango.WrapMode.WORD_CHAR)
+            v = Gtk.Label(
+                halign=Gtk.Align.END,
+                hexpand=True,
+                xalign=1,
+                wrap=True,
+                wrap_mode=Pango.WrapMode.WORD_CHAR,
+            )
             txt = GLib.markup_escape_text(str(valor))
             v.set_markup(f'<span foreground="{color}"><b>{txt}</b></span>' if color else txt)
             g.attach(e, 0, i, 1, 1)
@@ -96,9 +105,11 @@ class Panel(ScreenPanel):
         izq, der, n_izq, n_der = [], [], 0, 0
         for t, filas in secciones:
             if n_izq <= n_der:
-                izq.append((t, filas)); n_izq += len(filas) + 1
+                izq.append((t, filas))
+                n_izq += len(filas) + 1
             else:
-                der.append((t, filas)); n_der += len(filas) + 1
+                der.append((t, filas))
+                n_der += len(filas) + 1
         for col, lista in ((0, izq), (1, der)):
             caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12, valign=Gtk.Align.START)
             for t, filas in lista:
