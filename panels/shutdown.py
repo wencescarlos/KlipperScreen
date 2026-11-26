@@ -114,19 +114,11 @@ class Panel(ScreenPanel):
         if response_id == Gtk.ResponseType.ACCEPT:
             if method == "reboot":
                 self._screen._ws.send_method("machine.reboot")
-                ret, err = run_systemctl("reboot")
-                if ret != 0:
-                    self._screen.show_popup_message(
-                        f"Failed to reboot host: {err if err else f'exit code {ret}'}"
-                    )
+                self.host_action("reboot")
             else:
                 self.turn_off_power_devices()
                 self._screen._ws.send_method("machine.shutdown")
-                ret, err = run_systemctl("poweroff")
-                if ret != 0:
-                    self._screen.show_popup_message(
-                        f"Failed to power off host: {err if err else f'exit code {ret}'}"
-                    )
+                self.host_action("poweroff")
         elif response_id == Gtk.ResponseType.OK:
             if method == "reboot":
                 ret, err = run_systemctl("reboot")
@@ -146,6 +138,17 @@ class Panel(ScreenPanel):
             else:
                 self.turn_off_power_devices()
                 self._screen._ws.send_method("machine.shutdown")
+
+    def host_action(self, action):
+        # Moonraker (machine.reboot/shutdown) suele adelantarse y systemd rechaza
+        # la segunda orden con "already in progress": no es un fallo, no avisar.
+        ret, err = run_systemctl(action)
+        if ret == 0 or "already in progress" in err:
+            return
+        what = "reboot" if action == "reboot" else "power off"
+        self._screen.show_popup_message(
+            f"Failed to {what} host: {err if err else f'exit code {ret}'}"
+        )
 
     def turn_off_power_devices(self):
         if self.ks_printer_cfg is not None and self._screen.state.connected:
