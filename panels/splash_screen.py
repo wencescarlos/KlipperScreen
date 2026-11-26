@@ -12,9 +12,13 @@ from ks_includes.screen_panel import ScreenPanel
 class Panel(ScreenPanel):
     def __init__(self, screen, title):
         super().__init__(screen, title)
-        image = self._gtk.Image(
-            "klipper", self._gtk.content_width * 0.2, self._gtk.content_height * 0.5
-        )
+        # Dibujo de la WENCES-MK2 (styles/wences_mk2.svg) en lugar del logo de Klipper
+        size = (self._gtk.content_width * 0.25, self._gtk.content_height * 0.6)
+        pixbuf = self._gtk.PixbufFromIcon("../../wences_mk2", *size)
+        if pixbuf is not None:
+            image = Gtk.Image.new_from_pixbuf(pixbuf)
+        else:
+            image = self._gtk.Image("klipper", *size)
         self.labels["text"] = Gtk.Label(
             label=_("Initializing printer..."),
             wrap=True,

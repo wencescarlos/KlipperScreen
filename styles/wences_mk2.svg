@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- WENCES-MK2: marco LDO Bear morado, extrusor Prusa MK3S+ con motor pancake,
+     hotend Dragonfly BMO, SuperPINDA, cama MK3 con lámina texturizada y pantalla de 5" -->
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="morado" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5a2a86"/>
+      <stop offset="0.35" stop-color="#9a5cd0"/>
+      <stop offset="0.6" stop-color="#7b3fb0"/>
+      <stop offset="1" stop-color="#4a1f70"/>
+    </linearGradient>
+    <linearGradient id="moradoH" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a5cd0"/>
+      <stop offset="0.5" stop-color="#7b3fb0"/>
+      <stop offset="1" stop-color="#4a1f70"/>
+    </linearGradient>
+    <linearGradient id="acero" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2f2f5"/>
+      <stop offset="0.5" stop-color="#a9adb6"/>
+      <stop offset="1" stop-color="#6d717a"/>
+    </linearGradient>
+    <linearGradient id="aceroV" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a8e96"/>
+      <stop offset="0.5" stop-color="#e6e7ea"/>
+      <stop offset="1" stop-color="#7a7e86"/>
+    </linearGradient>
+    <linearGradient id="negro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a4a55"/>
+      <stop offset="1" stop-color="#1c1c22"/>
+    </linearGradient>
+    <linearGradient id="naranja" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8a4c"/>
+      <stop offset="1" stop-color="#d9531e"/>
+    </linearGradient>
+    <linearGradient id="lamina" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2b866"/>
+      <stop offset="1" stop-color="#9c7230"/>
+    </linearGradient>
+    <linearGradient id="pantalla" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1b3d"/>
+      <stop offset="1" stop-color="#120b1c"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9a5cd0" stop-opacity="0.35"/>
+      <stop offset="0.7" stop-color="#7b3fb0" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#7b3fb0" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="textura" width="6" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.2" r="0.7" fill="#fff3d0" opacity="0.35"/>
+      <circle cx="4.5" cy="3.0" r="0.6" fill="#6b4a1a" opacity="0.35"/>
+    </pattern>
+  </defs>
+
+  <!-- halo de fondo -->
+  <circle cx="200" cy="205" r="195" fill="url(#halo)"/>
+
+  <!-- husillos Z (detrás) -->
+  <rect x="104" y="72" width="5" height="250" fill="url(#aceroV)"/>
+  <rect x="291" y="72" width="5" height="250" fill="url(#aceroV)"/>
+  <!-- varillas lisas Z -->
+  <rect x="118" y="72" width="3" height="250" fill="#c9ccd2"/>
+  <rect x="279" y="72" width="3" height="250" fill="#c9ccd2"/>
+
+  <!-- marco Bear: perfiles morados -->
+  <g stroke="#2b1240" stroke-width="1.5">
+    <rect x="70" y="48" width="26" height="300" rx="2" fill="url(#morado)"/>
+    <rect x="304" y="48" width="26" height="300" rx="2" fill="url(#morado)"/>
+    <rect x="70" y="48" width="260" height="22" rx="2" fill="url(#moradoH)"/>
+    <rect x="40" y="328" width="320" height="22" rx="2" fill="url(#moradoH)"/>
+  </g>
+  <!-- ranuras de los perfiles -->
+  <g stroke="#3a1858" stroke-width="2" opacity="0.8">
+    <line x1="83" y1="72" x2="83" y2="326"/>
+    <line x1="317" y1="72" x2="317" y2="326"/>
+    <line x1="98" y1="59" x2="302" y2="59"/>
+    <line x1="44" y1="339" x2="356" y2="339"/>
+  </g>
+  <!-- escuadras del marco -->
+  <g fill="#2a2a33" stroke="#55556a" stroke-width="1">
+    <path d="M96 70 h16 l-16 16 z"/>
+    <path d="M304 70 h-16 l16 16 z"/>
+  </g>
+  <!-- placa con el nombre -->
+  <rect x="150" y="51" width="100" height="16" rx="3" fill="#1c1c22" stroke="#c9a2f0" stroke-width="1"/>
+  <text x="200" y="63.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" font-weight="bold"
+        fill="#ffffff" text-anchor="middle" letter-spacing="1">WENCES MK2</text>
+
+  <!-- motores Z abajo -->
+  <g>
+    <rect x="96" y="304" width="34" height="24" rx="2" fill="url(#negro)" stroke="#5e5e6e"/>
+    <rect x="270" y="304" width="34" height="24" rx="2" fill="url(#negro)" stroke="#5e5e6e"/>
+  </g>
+
+  <!-- puente X: extremos X y varillas -->
+  <rect x="100" y="152" width="200" height="5" rx="2" fill="url(#acero)"/>
+  <rect x="100" y="178" width="200" height="5" rx="2" fill="url(#acero)"/>
+  <g stroke="#55556a" stroke-width="1">
+    <path d="M94 140 h34 v54 h-34 z" fill="url(#negro)"/>
+    <path d="M272 140 h34 v54 h-34 z" fill="url(#negro)"/>
+  </g>
+  <!-- tuercas Z en los extremos -->
+  <rect x="100" y="188" width="13" height="10" rx="1.5" fill="#e9e5da" stroke="#9a968a"/>
+  <rect x="287" y="188" width="13" height="10" rx="1.5" fill="#e9e5da" stroke="#9a968a"/>
+  <!-- motor X -->
+  <rect x="78" y="146" width="18" height="40" rx="2" fill="#26262e" stroke="#5e5e6e"/>
+
+  <!-- filamento morado bajando al extrusor -->
+  <path d="M210 68 C 210 85, 212 100, 210 118" fill="none" stroke="#b07de0" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- carro + extrusor Prusa MK3S+ -->
+  <g>
+    <!-- motor pancake (Trianglelab) -->
+    <rect x="172" y="104" width="56" height="20" rx="3" fill="url(#negro)" stroke="#6a6a7a"/>
+    <rect x="176" y="108" width="48" height="3" fill="#6a6a7a"/>
+    <!-- cuerpo del extrusor naranja -->
+    <path d="M168 124 h64 v58 l-8 10 h-48 l-8 -10 z" fill="url(#naranja)" stroke="#8a3410" stroke-width="1.5"/>
+    <!-- tapa con rueda y tornillo tensor -->
+    <circle cx="200" cy="146" r="9" fill="#2a2a33" stroke="#1a1a20"/>
+    <circle cx="200" cy="146" r="3.5" fill="#bfc3ca"/>
+    <rect x="180" y="128" width="5" height="10" rx="1" fill="#bfc3ca"/>
+    <rect x="215" y="128" width="5" height="10" rx="1" fill="#bfc3ca"/>
+    <!-- ventilador del disipador -->
+    <rect x="182" y="160" width="36" height="26" rx="3" fill="#1c1c22" stroke="#5e5e6e"/>
+    <circle cx="200" cy="173" r="10" fill="#2e2e38" stroke="#6a6a7a"/>
+    <path d="M200 173 l7 -4 M200 173 l-1 8 M200 173 l-6 -5" stroke="#8a8a9a" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- SuperPINDA -->
+  <rect x="236" y="168" width="9" height="40" rx="2" fill="url(#aceroV)" stroke="#5e626a"/>
+  <rect x="236" y="204" width="9" height="5" fill="#d23a3a"/>
+
+  <!-- hotend Dragonfly BMO -->
+  <g>
+    <rect x="193" y="192" width="14" height="14" fill="url(#aceroV)" stroke="#5e626a"/>
+    <g fill="#c4c7cd" stroke="#7a7e86" stroke-width="0.5">
+      <rect x="190" y="194" width="20" height="2"/>
+      <rect x="190" y="198" width="20" height="2"/>
+      <rect x="190" y="202" width="20" height="2"/>
+    </g>
+    <!-- bloque con calcetín de silicona -->
+    <rect x="189" y="206" width="22" height="9" rx="2" fill="#d6492a" stroke="#8a2a14"/>
+    <!-- boquilla de acero templado -->
+    <path d="M195 215 h10 l-3 6 h-4 z" fill="#4a4d55" stroke="#2a2c30"/>
+  </g>
+
+  <!-- conducto de capa (Delta-P) -->
+  <path d="M168 186 q-6 18 10 30 h8 l-4 -6 q-10 -8 -8 -24 z" fill="#3a3a46" stroke="#5e5e6e"/>
+  <path d="M232 186 q6 18 -10 30 h-8 l4 -6 q10 -8 8 -24 z" fill="#3a3a46" stroke="#5e5e6e"/>
+
+  <!-- pieza impresa en la cama: la rosa de los vientos / torre -->
+  <g>
+    <rect x="186" y="232" width="28" height="22" fill="#9a5cd0" stroke="#5a2a86"/>
+    <g stroke="#7b3fb0" stroke-width="1">
+      <line x1="186" y1="236" x2="214" y2="236"/>
+      <line x1="186" y1="240" x2="214" y2="240"/>
+      <line x1="186" y1="244" x2="214" y2="244"/>
+      <line x1="186" y1="248" x2="214" y2="248"/>
+    </g>
+  </g>
+  <!-- última línea extruida -->
+  <rect x="194" y="226" width="12" height="3" rx="1.5" fill="#b07de0"/>
+
+  <!-- cama MK3 con lámina texturizada en perspectiva -->
+  <path d="M108 254 L292 254 L322 278 L78 278 Z" fill="url(#lamina)" stroke="#6b4a1a" stroke-width="1.2"/>
+  <path d="M108 254 L292 254 L322 278 L78 278 Z" fill="url(#textura)"/>
+  <!-- borde de la lámina y cama calefactada -->
+  <rect x="78" y="278" width="244" height="4" fill="#7a5520"/>
+  <rect x="80" y="282" width="240" height="7" fill="url(#negro)"/>
+  <!-- araña Fervi3D de aluminio -->
+  <path d="M130 289 h140 l-14 12 h-112 z" fill="url(#acero)" stroke="#6d717a"/>
+  <!-- guías lineales Y -->
+  <rect x="120" y="318" width="160" height="5" rx="1" fill="url(#acero)"/>
+
+  <!-- pantalla de 5" con KlipperScreen -->
+  <g>
+    <path d="M150 352 h100 l8 34 h-116 z" fill="#1c1c22" stroke="#6a6a7a" stroke-width="1.5"/>
+    <path d="M156 356 h88 l6 26 h-100 z" fill="url(#pantalla)"/>
+    <g fill="#9a5cd0">
+      <rect x="160" y="361" width="16" height="7" rx="1.5"/>
+      <rect x="180" y="361" width="16" height="7" rx="1.5" fill="#ff8a4c"/>
+      <rect x="200" y="361" width="16" height="7" rx="1.5" fill="#4fc3a1"/>
+      <rect x="220" y="361" width="16" height="7" rx="1.5" fill="#e2b866"/>
+      <rect x="158" y="372" width="84" height="4" rx="2" fill="#5a2a86"/>
+      <rect x="158" y="372" width="52" height="4" rx="2" fill="#b07de0"/>
+    </g>
+  </g>
+
+  <!-- patas -->
+  <rect x="44" y="350" width="22" height="8" rx="2" fill="#1c1c22"/>
+  <rect x="334" y="350" width="22" height="8" rx="2" fill="#1c1c22"/>
+</svg>
