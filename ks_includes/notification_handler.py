@@ -7,6 +7,9 @@ class NotificationHandler:
 
     def __init__(self, screen):
         self._screen = screen
+        # SAVE_CONFIG pedido mientras Klipper estaba ocupado (una macro trabajando):
+        # se pregunta al terminar, y solo si sigue habiendo algo sin guardar.
+        self._guardar_pendiente = False
 
         self._routes = {
             "notify_klippy_disconnected": self._klippy_disconnected,
@@ -51,6 +54,10 @@ class NotificationHandler:
         if "idle_timeout" in data and "state" in data["idle_timeout"]:
             if data["idle_timeout"]["state"] == "Printing":
                 self.__remove_confirm_dialogs()
+            elif self._guardar_pendiente:
+                self._guardar_pendiente = False
+                if self._screen.printer.get_stat("configfile", "save_config_pending") is True:
+                    self._preguntar_guardar()
             return
 
         if (
@@ -134,13 +141,21 @@ class NotificationHandler:
         ):
             self._screen.show_popup_message(data, from_ws=True)
         elif "SAVE_CONFIG" in data and self._screen.printer.state == "ready":
-            script = {"script": "SAVE_CONFIG"}
-            self._screen._confirm_send_action(
-                None,
-                _("Save configuration?") + "\n\n" + _("Klipper will reboot"),
-                "printer.gcode.script",
-                script,
-            )
+            # Con una macro en marcha (p. ej. CREAR_MALLA_LAMINA mide varias mallas y
+            # guarda ella al final) no se pregunta: se espera a que termine.
+            if self._screen.printer.get_stat("idle_timeout", "state") == "Printing":
+                self._guardar_pendiente = True
+            else:
+                self._preguntar_guardar()
+
+    def _preguntar_guardar(self):
+        script = {"script": "SAVE_CONFIG"}
+        self._screen._confirm_send_action(
+            None,
+            _("Save configuration?") + "\n\n" + _("Klipper will reboot"),
+            "printer.gcode.script",
+            script,
+        )
 
     def _active_spool_set(self, data):
         self._screen.set_active_spool_details(data.get("spool_id"))

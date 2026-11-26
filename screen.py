@@ -317,7 +317,7 @@ class KlipperScreen(Gtk.ApplicationWindow):
         requested_updates = {
             "objects": {
                 "bed_mesh": ["profile_name", "mesh_max", "mesh_min", "probed_matrix", "profiles"],
-                "configfile": ["config", "warnings"],
+                "configfile": ["config", "warnings", "save_config_pending"],
                 "display_status": ["progress", "message"],
                 "fan": ["speed"],
                 "gcode_move": [
