@@ -105,7 +105,9 @@ def avisos(printer):
     """[(texto, color)] para la barra superior."""
     sv = variables(printer)
     res = []
-    if sv.get("plr"):
+    # 'plr' se guarda en cada capa mientras se imprime: solo indica impresion cortada en reposo
+    estado = printer.get_stat("print_stats", "state")
+    if sv.get("plr") and estado not in ("printing", "paused"):
         res.append(("RECUPERAR", ROJO))
     if mantenimiento(printer)["pendientes"]:
         res.append(("MANTENIMIENTO", AMBAR))
